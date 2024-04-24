@@ -1,6 +1,7 @@
 ﻿using DotLiveCaching.API.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DotLiveCaching.API.Controllers
 {
@@ -9,16 +10,21 @@ namespace DotLiveCaching.API.Controllers
     public class StatesController : ControllerBase
     {
         private readonly EcommerceDbContext _context;
-
-        public StatesController(EcommerceDbContext context)
+        private readonly IMemoryCache _cache;
+        public StatesController(EcommerceDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var states = await _context.States.ToListAsync();
+            var states = await _cache.GetOrCreateAsync("states",
+                async e =>
+                {
+                    return await _context.States.ToListAsync();
+                });
 
             return Ok(states);
         }

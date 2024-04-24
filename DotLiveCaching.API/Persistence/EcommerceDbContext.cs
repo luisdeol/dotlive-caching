@@ -19,7 +19,7 @@ namespace DotLiveCaching.API.Persistence
             {
                 e.HasKey(s => s.Id);
 
-                e.HasData([new State { Id = 1, Country = "BR", Name = "São Paulo" }, new State { Id = 2, Country = "BR", Name = "Rio de Janeiro" }, new State { Id = 3, Country = "BR", Name = "Minas Gerais" }, new State { Id = 4, Country = "BR", Name = "Rio Grande do Sul" }, new State { Id = 5, Country = "BR", Name = "Fortaleza" }]);
+                e.HasData([new State { Id = 1, Country = "BR", Name = "São Paulo" }, new State { Id = 2, Country = "BR", Name = "Rio de Janeiro" }, new State { Id = 3, Country = "BR", Name = "Minas Gerais" }, new State { Id = 4, Country = "BR", Name = "Rio Grande do Sul" }, new State { Id = 5, Country = "BR", Name = "Ceará" }]);
             });
 
             builder.Entity<Product>(e =>

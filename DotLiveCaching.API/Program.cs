@@ -13,9 +13,8 @@ namespace DotLiveCaching.API
             // Add services to the container.
             builder.Services.AddDbContext<EcommerceDbContext>(o => o.UseSqlServer("Server=DESKTOP-GOK6BOV\\SQLEXPRESS; Database=DotLiveCachingDb; Integrated Security=True; trustServerCertificate=true"));
 
-            //builder.Services.AddLazyCache();
             builder.Services.AddMemoryCache();
-            
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

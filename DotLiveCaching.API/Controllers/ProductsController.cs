@@ -11,9 +11,8 @@ namespace DotLiveCaching.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly EcommerceDbContext _context;
-        private readonly IMemoryCache _cache;
         private const string PRODUCT_CACHE_KEY = "products";
-
+        private readonly IMemoryCache _cache;
         public ProductsController(EcommerceDbContext context, IMemoryCache cache)
         {
             _context = context;
@@ -23,19 +22,31 @@ namespace DotLiveCaching.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            // var products = await _context.Products.ToListAsync();
+            //var products = await _context.Products.ToListAsync();
 
             //List<Product>? products = [];
 
-            //if (!_cache.TryGetValue(PRODUCT_CACHE_KEY, out products)) {
+            //if (!_cache.TryGetValue(PRODUCT_CACHE_KEY, out products))
+            //{
             //    products = await _context.Products.ToListAsync();
-            //    _cache.Set(PRODUCT_CACHE_KEY, products);
+
+            //    var policy = new MemoryCacheEntryOptions
+            //    {
+            //        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3600),
+            //        SlidingExpiration = TimeSpan.FromSeconds(1200)
+            //    };
+
+            //    _cache.Set(PRODUCT_CACHE_KEY, products, policy);
             //}
 
-            var products = await _cache.GetOrCreateAsync(PRODUCT_CACHE_KEY, async e =>
-            {
-                return await _context.Products.ToListAsync();
-            });
+            var products = await _cache.GetOrCreateAsync(PRODUCT_CACHE_KEY,
+                async e =>
+                {
+                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    e.SlidingExpiration = TimeSpan.FromMinutes(20);
+
+                    return await _context.Products.ToListAsync();
+                });
 
             return Ok(products);
         }
@@ -43,13 +54,13 @@ namespace DotLiveCaching.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            // var product = await _context.Products.SingleOrDefaultAsync(p => p.Id == id);
             var key = $"p{id}";
 
-            var product = await _cache.GetOrCreateAsync(key, async e =>
-            {
-                return await _context.Products.SingleOrDefaultAsync(p => p.Id == id);
-            });
+            var product = await _cache.GetOrCreateAsync(key,
+                async e =>
+                {
+                    return await _context.Products.SingleOrDefaultAsync(p => p.Id == id);
+                });
 
             if (product == null)
             {
