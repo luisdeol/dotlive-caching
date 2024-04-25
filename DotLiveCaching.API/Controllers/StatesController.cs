@@ -1,7 +1,11 @@
-﻿using DotLiveCaching.API.Persistence;
+﻿using DotLiveCaching.API.Entities;
+using DotLiveCaching.API.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text;
+using System.Text.Json;
 
 namespace DotLiveCaching.API.Controllers
 {
@@ -10,8 +14,8 @@ namespace DotLiveCaching.API.Controllers
     public class StatesController : ControllerBase
     {
         private readonly EcommerceDbContext _context;
-        private readonly IMemoryCache _cache;
-        public StatesController(EcommerceDbContext context, IMemoryCache cache)
+        private readonly IDistributedCache _cache;
+        public StatesController(EcommerceDbContext context, IDistributedCache cache)
         {
             _context = context;
             _cache = cache;
@@ -20,13 +24,31 @@ namespace DotLiveCaching.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var states = await _cache.GetOrCreateAsync("states",
-                async e =>
-                {
-                    return await _context.States.ToListAsync();
-                });
+            List<State>? states;
 
+            var cacheStateString = await _cache.GetStringAsync("states");
+
+            if (string.IsNullOrWhiteSpace(cacheStateString))
+            {
+                states = await _context.States.ToListAsync();
+
+                var options = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(3600),
+                    SlidingExpiration = TimeSpan.FromSeconds(1200)
+                };
+
+                await _cache.SetAsync("states", GetBytes(states), options);
+            } else
+            {
+                states = JsonSerializer.Deserialize<List<State>>(cacheStateString);
+            }
+
+            // 
             return Ok(states);
         }
+
+        private byte[] GetBytes(object value)
+            => Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value));
     }
 }
